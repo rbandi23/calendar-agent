@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  title     String    @default("New conversation")
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+}
+
+model Message {
+  id               String       @id @default(cuid())
+  role             String       // "user" | "assistant"
+  content          String
+  toolCalls        Json?        // ToolCallStatus[] stored as JSON
+  structuredBlocks Json?        // StructuredBlock[] stored as JSON
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
