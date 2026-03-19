@@ -135,9 +135,19 @@ export async function getAccessToken(): Promise<string> {
     cookies: cookieStore,
   };
 
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
+  // Detect HTTPS from headers to use correct cookie name
+  const isSecure =
+    headersList.get("x-forwarded-proto") === "https" ||
+    process.env.NODE_ENV === "production";
+
   const token = await getToken({
     req: req as Parameters<typeof getToken>[0]["req"],
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
+    secret,
+    cookieName: isSecure
+      ? "__Secure-authjs.session-token"
+      : "authjs.session-token",
   });
 
   if (!token?.accessToken) {
