@@ -3,19 +3,18 @@ import { getToken } from "next-auth/jwt";
 
 /**
  * Middleware to protect /dashboard routes.
- * API auth is handled by individual route handlers.
+ * API routes handle their own auth via getAccessToken().
  */
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Only protect dashboard pages — API routes handle their own auth
-  if (!pathname.startsWith("/dashboard")) {
-    return NextResponse.next();
-  }
+  const isSecure = request.url.startsWith("https");
 
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    // NextAuth v5 uses different cookie names for HTTP vs HTTPS
+    cookieName: isSecure
+      ? "__Secure-authjs.session-token"
+      : "authjs.session-token",
   });
 
   if (!token) {
