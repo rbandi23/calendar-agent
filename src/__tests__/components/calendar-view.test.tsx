@@ -26,6 +26,8 @@ jest.mock("@/context/panel-context", () => ({
     panelState: { mode: "empty" },
     centerView: "calendar",
     setCenterView: jest.fn(),
+    calendarRefreshKey: 0,
+    triggerCalendarRefresh: jest.fn(),
   })),
 }));
 
@@ -59,11 +61,10 @@ beforeEach(() => {
 });
 
 describe("CalendarView", () => {
-  it("renders toolbar with Week, Month, Analytics tabs", async () => {
+  it("renders toolbar with Week and Month tabs", async () => {
     render(<CalendarView />);
     expect(screen.getByText("Week")).toBeInTheDocument();
     expect(screen.getByText("Month")).toBeInTheDocument();
-    expect(screen.getByText("Analytics")).toBeInTheDocument();
   });
 
   it("renders Today button", async () => {

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Send, Sparkles, Loader2 } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import type { EmailDraft } from "@/types";
 
 interface DraftPreviewProps {
@@ -29,7 +29,6 @@ export function DraftPreview({ draft }: DraftPreviewProps) {
   const [subject, setSubject] = useState(draft.subject);
   const [body, setBody] = useState(draft.body);
   const [sending, setSending] = useState(false);
-  const [improving, setImproving] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,31 +51,6 @@ export function DraftPreview({ draft }: DraftPreviewProps) {
       setError("Network error — could not send email");
     } finally {
       setSending(false);
-    }
-  };
-
-  const handleImprove = async () => {
-    if (!body.trim()) return;
-    setImproving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/gmail/improve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, context: `Subject: ${subject}` }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.improved) {
-          setBody(data.improved);
-        }
-      } else {
-        setError("Failed to improve email");
-      }
-    } catch {
-      setError("Network error — could not improve email");
-    } finally {
-      setImproving(false);
     }
   };
 
@@ -141,19 +115,6 @@ export function DraftPreview({ draft }: DraftPreviewProps) {
               <Send className="mr-1 h-3 w-3" />
             )}
             {sent ? "Sent" : "Send"}
-          </Button>
-          <Button
-            size="xs"
-            variant="outline"
-            onClick={handleImprove}
-            disabled={improving || sent || !body.trim()}
-          >
-            {improving ? (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            ) : (
-              <Sparkles className="mr-1 h-3 w-3" />
-            )}
-            Improve with AI
           </Button>
         </div>
       </CardContent>

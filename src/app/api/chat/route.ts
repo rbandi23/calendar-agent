@@ -31,6 +31,7 @@ function summarizeToolResult(toolName: string, result: unknown): string {
       case "get_event_details":
         return obj.summary ? `"${obj.summary}"` : "Got details";
       case "create_calendar_event":
+        if (obj.warning === "CONFLICT_DETECTED") return "Conflict detected — needs confirmation";
         return obj.summary ? `Created "${obj.summary}"` : "Event created";
       case "get_free_busy": {
         const calendars = obj.calendars as Record<string, { busy: unknown[] }> | undefined;
@@ -87,13 +88,21 @@ Response style:
 - Be brief — 2-4 sentences max for simple answers.
 - When prepping for meetings: give a quick natural summary of what you found. Mention key topics from emails conversationally ("Looks like you and Naman last discussed X..."). Don't list raw email subjects or metadata.
 - For scheduling: suggest 2-3 specific times.
-- For email drafts: use propose_email tool. Sign off as "${user.name || ""}".
+- For email drafts: ALWAYS use the propose_email tool. NEVER write email content as plain text in the chat. The tool renders an interactive card the user can edit and send. Sign off as "${user.name || ""}".
 - Never dump raw JSON, IDs, or technical metadata to the user.
 
 Rules:
-- NEVER send emails or create Gmail drafts. Always use propose_email for user approval.
+- NEVER write email drafts as plain text. ALWAYS call propose_email — this is a hard requirement, not a suggestion. The user needs the interactive send/edit card.
+- NEVER send emails or create Gmail drafts autonomously. Always use propose_email for user approval.
 - Confirm before creating or rescheduling calendar events.
 - Use ISO 8601 for API calls. Check free/busy before suggesting times.
+
+Meeting prep workflow:
+When the user asks to "prep for my next meeting" or "prep for [meeting name]":
+1. If the message contains a [Referencing event: "..."] tag, extract the event title and use list_calendar_events to find it by name, then call prep_for_meeting with its ID.
+2. If no reference, call list_calendar_events to get upcoming events (today and tomorrow). Skip all-day events. Pick the next one by start time.
+3. If no upcoming meetings, say "You have no upcoming meetings today or tomorrow."
+4. After calling prep_for_meeting, give a conversational brief — do NOT repeat the raw summary. Instead, highlight key points: who's attending, what you discussed recently over email, and any agenda notes.
 
 Rescheduling workflow:
 When the user asks to "move", "reschedule", or "change the time of" a meeting:
@@ -117,7 +126,20 @@ When the user asks to "schedule a meeting about an email/thread" or "set up a ca
 3. Use get_free_busy to check availability for all participants (note: external participants' availability may not be visible)
 4. Suggest 2-3 time slots with a proposed meeting title derived from the email subject
 5. If the user confirms, use create_calendar_event with the extracted attendees and a description referencing the email thread
-Always explain your reasoning: "I found the thread with Sarah about Q3 planning. Let me check everyone's availability..."`;
+Always explain your reasoning: "I found the thread with Sarah about Q3 planning. Let me check everyone's availability..."
+
+Multi-person scheduling (IMPORTANT):
+When proposing meeting times to MULTIPLE people separately (separate emails), you MUST suggest DIFFERENT time slots to each person. Never propose the same time to two different people — if both accept, the user gets double-booked.
+- Example: Suggest 10am, 11am, 2pm to Person A and 10:30am, 1pm, 3pm to Person B.
+- If there are limited free slots, explicitly tell the user: "I only found 2 open slots — I'll suggest the same options to both, but you can only book one."
+- When the user asks to "schedule with Andrew AND Michael", prefer a single group meeting (one event with both as attendees). Only send separate emails when the user explicitly wants separate 1:1 meetings.
+
+Email drafting rules:
+- When the user asks to email multiple people, determine intent:
+  - "Email them" / "send an email to X, Y, and Z" with ONE topic → single propose_email with all recipients comma-separated in "to". This sends ONE email to everyone.
+  - "Send separate emails" / "email each of them individually" / "send them each a message" → call propose_email MULTIPLE TIMES, once per recipient. Each call creates a separate draft card the user can edit individually.
+- When in doubt, default to a single group email — it's the common case.
+- You can call propose_email multiple times in one response to create multiple draft cards.`;
 }
 
 export async function POST(request: NextRequest) {

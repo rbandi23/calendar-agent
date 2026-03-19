@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Send, Save, X, Loader2 } from "lucide-react";
+import { Send, Save, X, Loader2, Sparkles } from "lucide-react";
 import type { EmailDraft } from "@/types";
 
 interface DraftEditorProps {
@@ -20,6 +20,7 @@ export function DraftEditor({ initialDraft }: DraftEditorProps) {
   const [body, setBody] = useState(initialDraft.body);
   const [sending, setSending] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [improving, setImproving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSend = async () => {
@@ -63,6 +64,31 @@ export function DraftEditor({ initialDraft }: DraftEditorProps) {
       setError("Network error — could not save draft");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleImprove = async () => {
+    if (!body.trim()) return;
+    setImproving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/gmail/improve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, context: `Subject: ${subject}` }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.improved) {
+          setBody(data.improved);
+        }
+      } else {
+        setError("Failed to improve email");
+      }
+    } catch {
+      setError("Network error — could not improve email");
+    } finally {
+      setImproving(false);
     }
   };
 
@@ -142,6 +168,20 @@ export function DraftEditor({ initialDraft }: DraftEditorProps) {
             <Save className="h-3.5 w-3.5" />
           )}
           Save Draft
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleImprove}
+          disabled={improving || !body.trim()}
+          className="gap-1"
+        >
+          {improving ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Sparkles className="h-3.5 w-3.5" />
+          )}
+          Improve with AI
         </Button>
         <Button
           size="sm"

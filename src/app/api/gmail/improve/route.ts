@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         { role: "system", content: systemPrompt },
         { role: "user", content: body },
       ],
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
     });
 
     const improved = response.choices[0]?.message?.content?.trim() ?? body;

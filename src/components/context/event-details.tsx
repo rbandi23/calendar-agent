@@ -21,6 +21,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import type { CalendarEvent } from "@/types";
+import type { AttachedEvent } from "@/context/panel-context";
 
 interface EventDetailsProps {
   eventId: string;
@@ -28,7 +29,7 @@ interface EventDetailsProps {
 
 export function EventDetails({ eventId }: EventDetailsProps) {
   const { data: session } = useSession();
-  const { setCenterView, setPanelState } = usePanel();
+  const { setCenterView, setPanelState, setChatOpen, attachEvent } = usePanel();
   const [event, setEvent] = useState<CalendarEvent | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -68,7 +69,27 @@ export function EventDetails({ eventId }: EventDetailsProps) {
   };
 
   const handlePrepForMeeting = () => {
-    setCenterView("chat");
+    if (!event) return;
+
+    // Attach event to chat so the AI gets the context
+    const startStr = event.start.dateTime ?? event.start.date ?? "";
+    const endStr = event.end.dateTime ?? event.end.date ?? "";
+    attachEvent({
+      id: event.id,
+      summary: event.summary,
+      start: startStr,
+      end: endStr,
+    });
+
+    // Auto-send a prep request via a custom event that ChatInput listens for
+    window.dispatchEvent(
+      new CustomEvent("auto-send-chat", {
+        detail: `Prep me for my meeting "${event.summary}"`,
+      })
+    );
+
+    // Open chat and close context panel
+    setChatOpen(true);
     setPanelState({ mode: "empty" });
   };
 

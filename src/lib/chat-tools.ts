@@ -149,11 +149,11 @@ export const chatTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     function: {
       name: "propose_email",
       description:
-        "Propose an email draft for the user to review and edit before sending. NEVER send emails directly — always propose for user approval. Returns the draft data as a structured block in the chat.",
+        "Propose an email draft for the user to review and edit before sending. NEVER send emails directly — always propose for user approval. Returns the draft data as an interactive card in the chat. Call this MULTIPLE TIMES to create separate drafts for different recipients.",
       parameters: {
         type: "object",
         properties: {
-          to: { type: "string", description: "Recipient email address(es), comma-separated" },
+          to: { type: "string", description: "Recipient email address(es), comma-separated for a single group email" },
           subject: { type: "string", description: "Email subject line" },
           body: { type: "string", description: "Email body text" },
         },
@@ -325,6 +325,17 @@ export async function executeTool(
         attendees?: string[];
         location?: string;
       };
+
+      // Check for conflicts before creating
+      const conflicts = await getFreeBusy(accessToken, startDateTime, endDateTime, ["primary"]);
+      const primaryBusy = conflicts.calendars?.["primary"]?.busy ?? [];
+      if (primaryBusy.length > 0) {
+        return {
+          warning: "CONFLICT_DETECTED",
+          message: `You already have ${primaryBusy.length} event(s) during ${startDateTime} — ${endDateTime}. Ask the user to confirm before proceeding.`,
+          conflicts: primaryBusy,
+        };
+      }
 
       return createEvent(accessToken, {
         summary,

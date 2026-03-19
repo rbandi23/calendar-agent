@@ -162,6 +162,23 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     };
   }, []);
 
+  // Listen for auto-send events (e.g. from "Prep for meeting" button)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (detail && !isLoading) {
+        // Build the message with attached events context
+        const eventContext = attachedEvents.length > 0
+          ? attachedEvents.map((ev) => `[Referencing event: "${ev.summary}" (${ev.start})]`).join(" ") + "\n"
+          : "";
+        onSend(eventContext + detail);
+        clearAttachedEvents();
+      }
+    };
+    window.addEventListener("auto-send-chat", handler);
+    return () => window.removeEventListener("auto-send-chat", handler);
+  }, [isLoading, onSend, attachedEvents, clearAttachedEvents]);
+
   const handleSend = useCallback(() => {
     const eventContext = attachedEvents.length > 0
       ? attachedEvents.map((e) => `[Referencing event: "${e.summary}" (${e.start})]`).join(" ") + "\n"
