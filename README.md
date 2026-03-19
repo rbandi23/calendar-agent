@@ -4,12 +4,7 @@ An AI-powered calendar assistant that connects to Google Calendar and Gmail, let
 
 Built with Next.js 16, React 19, OpenAI GPT-5-mini, and a 3-panel layout inspired by modern productivity tools.
 
-<!--
-  Screenshots: Take these from your running app and place in docs/screenshots/
-  Recommended: Use Chrome DevTools device toolbar at 1440x900 for consistency
--->
-
-![Dashboard — Calendar + Chat + Context Panel](docs/screenshots/dashboard-full.png)
+![Dashboard — Calendar + Chat + Context Panel](docs/screenshots/Screenshot%202026-03-19%20at%2011.08.13%20AM.png)
 
 ---
 
@@ -21,8 +16,6 @@ Talk to your calendar in plain English. The AI agent chains multiple tools toget
 > "Move my 3pm to tomorrow and email the attendees about the change"
 
 The agent will: look up the event → check tomorrow's availability → reschedule it → draft a notification email for your approval.
-
-![Chat with agentic tool-calling](docs/screenshots/chat-tools.png)
 
 ### What the Agent Can Do
 
@@ -56,8 +49,6 @@ The agent will: look up the event → check tomorrow's availability → reschedu
 - **Chat**: SSE-streamed responses, collapsible tool reasoning, structured response cards
 - **Context Panel**: Opens on the right when you click an event or book a time slot
 
-![Event details in context panel](docs/screenshots/context-panel.png)
-
 ### Agentic Tool Visualization
 
 The chat shows what the AI is doing in real-time with a collapsible timeline:
@@ -68,19 +59,13 @@ The chat shows what the AI is doing in real-time with a collapsible timeline:
 - Duration badges per tool call
 - Auto-expands while thinking, collapses when done
 
-![Tool reasoning visualization](docs/screenshots/tool-viz.png)
-
 ### Drag Events to Chat
 
 Drag any calendar event into the chat input to reference it in your message. The event appears as a chip, and the context is sent to the AI.
 
-![Drag event to chat](docs/screenshots/drag-to-chat.png)
-
 ### Interactive Email Drafts
 
 When the AI drafts an email, it renders as an editable card — not plain text. You can modify the To, Subject, and Body fields, improve the draft with AI, then send directly from the card.
-
-![Email draft card](docs/screenshots/email-draft.png)
 
 ### Voice Input
 
@@ -294,25 +279,6 @@ npm test
 - **Services**: Calendar service, Gmail service, contacts, analytics, chat tools
 - **Hooks**: useChat (SSE parsing, message management)
 - **Components**: CalendarView, ChatView, EventDetails
-
----
-
-## Screenshots Needed
-
-To add screenshots to this README, take them from your running app and save to `docs/screenshots/`:
-
-| Filename | What to capture |
-|----------|----------------|
-| `dashboard-full.png` | Full 3-panel layout (calendar + chat + context panel open) |
-| `chat-tools.png` | Chat showing the agentic tool visualization (expanded) |
-| `context-panel.png` | Context panel showing event details with attendees |
-| `drag-to-chat.png` | Mid-drag of a calendar event toward the chat input |
-| `email-draft.png` | DraftPreview card in the chat with To/Subject/Body |
-| `tool-viz.png` | Close-up of the tool reasoning timeline |
-| `analytics.png` | Analytics chart with meeting stats |
-| `voice-input.png` | Chat input with mic button active (red pulsing) |
-
-Quick way to capture: open the app at `localhost:3000/dashboard`, use Chrome DevTools (Cmd+Shift+P → "Capture screenshot") at 1440x900.
 
 ---
 
