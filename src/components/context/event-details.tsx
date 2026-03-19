@@ -156,9 +156,12 @@ export function EventDetails({ eventId }: EventDetailsProps) {
       {event.description && (
         <div className="flex items-start gap-2 text-sm">
           <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-          <p className="whitespace-pre-wrap text-muted-foreground">
-            {event.description}
-          </p>
+          <div
+            className="whitespace-pre-wrap text-muted-foreground [&_a]:text-primary [&_a]:underline"
+            dangerouslySetInnerHTML={{
+              __html: event.description,
+            }}
+          />
         </div>
       )}
 
